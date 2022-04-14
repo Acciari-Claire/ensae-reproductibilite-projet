@@ -1,11 +1,13 @@
 """Runs a Random Forest on Titanic survival dataset."""
-from functions import import_data, feature_engineering, label_encoding
-from functions import split_train_test, rf_train_evaluate
+from src.data.import_dataset import import_data
+from src.data.split_dataset import split_train_test
+from src.features.build_features import feature_engineering, label_encoding
+from src.models.train_evaluate import rf_train_evaluate
 
 
 if __name__ == "__main__":
 
-    TrainingData, TestData = import_data()
+    TrainingData, TestData = import_data("")
 
     meanAge = round(TrainingData['Age'].mean())
     TrainingData = feature_engineering(TrainingData, meanAge)
