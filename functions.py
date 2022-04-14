@@ -1,3 +1,4 @@
+"""Functions used to import and prepare data before running a random forest."""
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -6,43 +7,49 @@ from sklearn.metrics import confusion_matrix
 
 
 def import_data():
+    """ Import the Titanic training and testing sets """
     return pd.read_csv("train.csv"), pd.read_csv("test.csv")
 
 
-def extract_title(df):
-    x = df['Name'].apply(lambda x: x.split(',')[1])
-    x = x.apply(lambda x: x.split()[0])
-    return x
+def extract_title(dataframe):
+    """ Extract the title from the name variable """
+    title = dataframe['Name'].str.rsplit(",", n=1).str[-1]
+    title = title.str.split().str[0]
+    return title
 
 
-def feature_engineering(df, meanAge):
-    df["Title"] = extract_title(df)
-    df['Title'] = df['Title'].replace('Dona.', 'Mrs.')
-    df['Age'] = df['Age'].fillna(meanAge)
-    df['Ticket_Len'] = df['Ticket'].apply(lambda x: len(x))
-    df['Fare'] = df['Fare'].fillna(df['Fare'].mean())
-    df['hasCabin'] = df.Cabin.notnull().astype(int)
-    df['Embarked'] = df['Embarked'].fillna('S')
-    df.drop(labels=['PassengerId', 'Name',
-                    'Ticket', 'Cabin'], axis=1, inplace=True)
-    return df
+def feature_engineering(dataframe, mean_age):
+    """ Performs feature engineering steps """
+    dataframe["Title"] = extract_title(dataframe)
+    dataframe['Title'] = dataframe['Title'].replace('Dona.', 'Mrs.')
+    dataframe['Age'] = dataframe['Age'].fillna(mean_age)
+    dataframe['Ticket_Len'] = dataframe['Ticket'].apply(lambda x: len(x))
+    dataframe['Fare'] = dataframe['Fare'].fillna(dataframe['Fare'].mean())
+    dataframe['hasCabin'] = dataframe.Cabin.notnull().astype(int)
+    dataframe['Embarked'] = dataframe['Embarked'].fillna('S')
+    dataframe.drop(labels=['PassengerId', 'Name',
+                           'Ticket', 'Cabin'], axis=1, inplace=True)
+    return dataframe
 
 
-def label_encoding(df, var):
+def label_encoding(dataframe, var):
+    """ Tranforms labels into numbers """
     encoder = LabelEncoder()
-    df[var] = encoder.fit_transform(df[var].values)
-    return df
+    dataframe[var] = encoder.fit_transform(dataframe[var].values)
+    return dataframe
 
 
-def split_train_test(df):
-    y = df["Survived"].values
-    X = df.drop(labels="Survived", axis=1).values
+def split_train_test(dataframe):
+    """ Splits the data in training and testing sets """
+    y = dataframe["Survived"].values
+    X = dataframe.drop(labels="Survived", axis=1).values
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
     return X_train, X_test, y_train, y_test
 
 
-def RF_train_evaluate(X_train, y_train, X_test, y_test, n_estimators):
-    rdmf = RandomForestClassifier(n_estimators=20)
+def rf_train_evaluate(X_train, y_train, X_test, y_test, n_estimators):
+    """ Runs and evaluate a random Forest Classifier """
+    rdmf = RandomForestClassifier(n_estimators=n_estimators)
     rdmf.fit(X_train, y_train)
 
     rdmf_score = rdmf.score(X_test, y_test)
